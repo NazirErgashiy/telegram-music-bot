@@ -17,23 +17,23 @@ import static uz.nazir.musicbot.repository.util.StandardTime.nowIso8601;
 @Data
 @Entity
 @Table(name = "users")
-public class UserEntity {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "name")
+    @Column
     private String name;
 
-    @Column(name = "code")
+    @Column
     private String code;
 
-    @Column(name = "search")
+    @Column
     private String search;
 
-    @Column(name = "page")
+    @Column
     private Integer page;
 
     @Column(name = "joined_date")

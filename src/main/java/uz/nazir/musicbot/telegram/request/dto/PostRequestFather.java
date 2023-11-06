@@ -3,7 +3,7 @@ package uz.nazir.musicbot.telegram.request.dto;
 import lombok.Data;
 
 @Data
-public class PostRequest {
+public class PostRequestFather {
     private boolean ok;
-    private Result result;
+    private PostRequestChild postRequestChild;
 }

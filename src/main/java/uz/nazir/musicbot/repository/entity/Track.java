@@ -15,20 +15,20 @@ import java.time.LocalDateTime;
 @Data
 @Entity
 @Table(name = "tracks")
-public class TrackEntity {
+public class Track {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
+    @Column
     private Long id;
 
-    @Column(name = "name")
+    @Column
     private String name;
 
-    @Column(name = "author")
+    @Column
     private String author;
 
-    @Column(name = "path")
+    @Column
     private String path;
 
     @Column(name = "create_date")

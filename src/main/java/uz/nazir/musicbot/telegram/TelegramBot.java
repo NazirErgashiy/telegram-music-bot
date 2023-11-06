@@ -1,6 +1,8 @@
 package uz.nazir.musicbot.telegram;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.facilities.filedownloader.TelegramFileDownloader;
@@ -13,14 +15,14 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import uz.nazir.musicbot.config.ConstantsConfig;
-import uz.nazir.musicbot.service.TracksService;
-import uz.nazir.musicbot.service.UsersService;
+import uz.nazir.musicbot.service.TrackService;
+import uz.nazir.musicbot.service.UserService;
 import uz.nazir.musicbot.service.dto.request.TrackRequestDto;
 import uz.nazir.musicbot.service.dto.response.TrackResponseDto;
 import uz.nazir.musicbot.service.dto.response.UserResponseDto;
 import uz.nazir.musicbot.telegram.keyboard.SelectMusicKeyboard;
 import uz.nazir.musicbot.telegram.request.TelegramHttpRequestManager;
-import uz.nazir.musicbot.telegram.request.dto.PostRequest;
+import uz.nazir.musicbot.telegram.request.dto.PostRequestFather;
 
 import java.io.File;
 import java.io.IOException;
@@ -32,17 +34,18 @@ import java.util.function.Supplier;
 @RequiredArgsConstructor
 public class TelegramBot extends TelegramLongPollingBot {
 
-    private final TracksService tracksService;
-    private final UsersService usersService;
+    private final TrackService trackService;
+    private final UserService userService;
     private final TelegramHttpRequestManager telegramHttpRequestManager;
     private final SelectMusicKeyboard selectMusicKeyboard;
     Supplier<String> b = this::getBotToken;
     private final TelegramFileDownloader telegramFileDownloader = new TelegramFileDownloader(b);
+    private static final Logger slf4jLogger = LoggerFactory.getLogger(TelegramBot.class);
 
     @Override
     public void onUpdateReceived(Update update) {
         //Saving user to DB
-        usersService.saveOrUpdateUser(update);
+        userService.saveOrUpdateUser(update);
 
         //Download music from user
         if (update.hasMessage() && update.getMessage().hasAudio()) {
@@ -50,13 +53,13 @@ public class TelegramBot extends TelegramLongPollingBot {
             Audio audio = update.getMessage().getAudio();
 
             try {
-                PostRequest postRequest = telegramHttpRequestManager.downloadMusicFromChat("https://api.telegram.org/bot" + getBotToken() + "/getFile?file_id=" + audio.getFileId());
-                File music = telegramFileDownloader.downloadFile(postRequest.getResult().getFile_path());
+                PostRequestFather postRequestFather = telegramHttpRequestManager.downloadMusicFromChat("https://api.telegram.org/bot" + getBotToken() + "/getFile?file_id=" + audio.getFileId());
+                File music = telegramFileDownloader.downloadFile(postRequestFather.getPostRequestChild().getFile_path());
 
                 TrackRequestDto track = new TrackRequestDto();
                 track.setName(audio.getFileName());
 
-                tracksService.saveTrack(track, music, update);
+                trackService.saveTrack(track, music, update);
 
                 sendMessage(chatId, "Success");
             } catch (TelegramApiException | IOException e) {
@@ -74,10 +77,10 @@ public class TelegramBot extends TelegramLongPollingBot {
                     startCommandReceived(chatId, update.getMessage().getChat().getUserName());
                     break;
                 default:
-                    List<TrackResponseDto> tracks = tracksService.getTrackByName(messageText, 0, 10);
-                    int size = tracksService.getTrackByName(messageText).size();
-                    usersService.saveUserPagination(String.valueOf(chatId), 0);
-                    usersService.saveUserSearch(String.valueOf(chatId), messageText);
+                    List<TrackResponseDto> tracks = trackService.getTrackByName(messageText, 0, 10);
+                    int size = trackService.getTrackByName(messageText).size();
+                    userService.saveUserPagination(String.valueOf(chatId), 0);
+                    userService.saveUserSearch(String.valueOf(chatId), messageText);
                     if (tracks.size() == 0) {
                         sendMessage(chatId, "No results");
                         return;
@@ -92,15 +95,15 @@ public class TelegramBot extends TelegramLongPollingBot {
             String callBack = update.getCallbackQuery().getData();
             Long chatId = update.getCallbackQuery().getMessage().getChatId();
             Integer messageId = update.getCallbackQuery().getMessage().getMessageId();
-            UserResponseDto user = usersService.getUserByChatId(String.valueOf(chatId));
-            int size = tracksService.getTrackByName(user.getSearch()).size();
+            UserResponseDto user = userService.getUserByChatId(String.valueOf(chatId));
+            int size = trackService.getTrackByName(user.getSearch()).size();
             switch (callBack) {
                 case "_LEFT":
                     if (user.getPage() > 0) {
                         deleteMessage(chatId, messageId);
-                        List<TrackResponseDto> tracks = tracksService.getTrackByName(user.getSearch(), user.getPage() - 1, 10);
+                        List<TrackResponseDto> tracks = trackService.getTrackByName(user.getSearch(), user.getPage() - 1, 10);
                         sendMessage(selectMusicKeyboard.sendKeyboard(chatId, tracks, user.getPage() - 1, size));
-                        usersService.saveUserPagination(String.valueOf(chatId), user.getPage() - 1);
+                        userService.saveUserPagination(String.valueOf(chatId), user.getPage() - 1);
                     }
                     break;
                 case "_DELETE":
@@ -108,9 +111,9 @@ public class TelegramBot extends TelegramLongPollingBot {
                     break;
                 case "_RIGHT":
                     deleteMessage(chatId, messageId);
-                    List<TrackResponseDto> tracks = tracksService.getTrackByName(user.getSearch(), user.getPage() + 1, 10);
+                    List<TrackResponseDto> tracks = trackService.getTrackByName(user.getSearch(), user.getPage() + 1, 10);
                     sendMessage(selectMusicKeyboard.sendKeyboard(chatId, tracks, user.getPage() + 1, size));
-                    usersService.saveUserPagination(String.valueOf(chatId), user.getPage() + 1);
+                    userService.saveUserPagination(String.valueOf(chatId), user.getPage() + 1);
                     break;
             }
             try {
@@ -179,7 +182,7 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     public void readMusicFromLocalFolder(String path) {
-        tracksService.readTracksFromLocalDirectory(path);
+        trackService.readTracksFromLocalDirectory(path);
     }
 
     public void forwardAd(String fromChatId, String chatId, Integer messageId) {
@@ -190,13 +193,13 @@ public class TelegramBot extends TelegramLongPollingBot {
         try {
             execute(message);
         } catch (TelegramApiException e) {
-            System.out.println("FAILED TO DELIVER AD");
-            System.out.println(Arrays.toString(e.getStackTrace()));
+            slf4jLogger.warn("FAILED TO DELIVER AD");
+            slf4jLogger.warn(Arrays.toString(e.getStackTrace()));
         }
     }
 
     public void forwardAdToAllUsers(String fromChatId, Integer messageId) {
-        List<UserResponseDto> allUsers = usersService.getAllUsers();
+        List<UserResponseDto> allUsers = userService.getAllUsers();
 
         for (UserResponseDto user : allUsers) {
             forwardAd(fromChatId, user.getCode(), messageId);
@@ -210,13 +213,13 @@ public class TelegramBot extends TelegramLongPollingBot {
         try {
             execute(message);
         } catch (TelegramApiException e) {
-            System.out.println("FAILED TO DELIVER AD");
-            System.out.println(Arrays.toString(e.getStackTrace()));
+            slf4jLogger.warn("FAILED TO DELIVER AD");
+            slf4jLogger.warn(Arrays.toString(e.getStackTrace()));
         }
     }
 
     public void sendAdToAllUsers(String messageText) {
-        List<UserResponseDto> allUsers = usersService.getAllUsers();
+        List<UserResponseDto> allUsers = userService.getAllUsers();
 
         for (UserResponseDto user : allUsers) {
             sendAd(user.getCode(), messageText);
@@ -224,6 +227,6 @@ public class TelegramBot extends TelegramLongPollingBot {
     }
 
     public void sendTrackById(String chatId, Long trackId) {
-        sendTrack(Long.valueOf(chatId), tracksService.getTrack(trackId));
+        sendTrack(Long.valueOf(chatId), trackService.getTrack(trackId));
     }
 }

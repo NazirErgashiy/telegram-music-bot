@@ -1,7 +1,9 @@
 package uz.nazir.musicbot.service.mapper;
 
 import org.junit.jupiter.api.Test;
-import uz.nazir.musicbot.repository.entity.TrackEntity;
+import uz.nazir.musicbot.mappers.TrackMapper;
+import uz.nazir.musicbot.mappers.TrackMapperImpl;
+import uz.nazir.musicbot.repository.entity.Track;
 import uz.nazir.musicbot.service.dto.request.TrackRequestDto;
 import uz.nazir.musicbot.service.dto.response.TrackResponseDto;
 
@@ -20,7 +22,7 @@ class TrackMapperTest {
         requestDto.setPath("A:\\path");
         requestDto.setAuthor("author");
 
-        TrackEntity entity = trackMapper.dtoToEntity(requestDto);
+        Track entity = trackMapper.dtoToEntity(requestDto);
 
         assertEquals(requestDto.getName(), entity.getName());
         assertEquals(requestDto.getPath(), entity.getPath());
@@ -32,7 +34,7 @@ class TrackMapperTest {
 
     @Test
     void entityToDto() {
-        TrackEntity entity = new TrackEntity();
+        Track entity = new Track();
         entity.setId(1L);
         entity.setName("name");
         entity.setPath("A:\\path");

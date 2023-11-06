@@ -8,7 +8,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Component;
-import uz.nazir.musicbot.telegram.request.dto.PostRequest;
+import uz.nazir.musicbot.telegram.request.dto.PostRequestFather;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -18,7 +18,7 @@ public class TelegramHttpRequestManager {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public PostRequest downloadMusicFromChat(String uri) throws IOException {
+    public PostRequestFather downloadMusicFromChat(String uri) throws IOException {
         HttpPost post = new HttpPost(uri);
         CloseableHttpClient httpclient = HttpClients.createDefault();
         CloseableHttpResponse response = httpclient.execute(post);
@@ -27,6 +27,6 @@ public class TelegramHttpRequestManager {
         if (entity != null) {
             json = EntityUtils.toString(entity, StandardCharsets.UTF_8);
         }
-        return objectMapper.readValue(json, PostRequest.class);
+        return objectMapper.readValue(json, PostRequestFather.class);
     }
 }

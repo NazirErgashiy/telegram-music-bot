@@ -1,6 +1,6 @@
-package uz.nazir.musicbot.repository;
+package uz.nazir.musicbot.repository.dao.file;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 import uz.nazir.musicbot.config.ConstantsConfig;
 
 import java.io.File;
@@ -14,11 +14,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Component
+@Repository
 public class MusicRepository {
 
     public String save(File music, String name) {
-        File file = new File( ConstantsConfig.PATH_TO_SAVE_MUSIC_FROM_USERS + name);
+        File file = new File(ConstantsConfig.PATH_TO_SAVE_MUSIC_FROM_USERS + name);
 
         try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
             byte[] bytes = read(music);

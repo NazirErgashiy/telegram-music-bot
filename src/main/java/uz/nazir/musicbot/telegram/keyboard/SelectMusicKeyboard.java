@@ -4,7 +4,6 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
-import uz.nazir.musicbot.repository.entity.TrackEntity;
 import uz.nazir.musicbot.service.dto.response.TrackResponseDto;
 
 import java.util.ArrayList;
@@ -23,15 +22,15 @@ public class SelectMusicKeyboard {
         List<InlineKeyboardButton> row3 = new ArrayList<>();
 
         InlineKeyboardButton buttonLeft = new InlineKeyboardButton();
-        buttonLeft.setText("<-");
+        buttonLeft.setText("⬅️");
         buttonLeft.setCallbackData("_LEFT");
 
         InlineKeyboardButton buttonDelete = new InlineKeyboardButton();
-        buttonDelete.setText("X");
+        buttonDelete.setText("♻️");
         buttonDelete.setCallbackData("_DELETE");
 
         InlineKeyboardButton buttonRight = new InlineKeyboardButton();
-        buttonRight.setText("->");
+        buttonRight.setText("➡️");
         buttonRight.setCallbackData("_RIGHT");
 
         row3.add(buttonLeft);
@@ -70,7 +69,7 @@ public class SelectMusicKeyboard {
         StringBuilder builder = new StringBuilder();
 
         builder.append("Total matches: ").append(fullSize).append("\n");
-        builder.append("Page: ").append(page).append(" of ").append(fullSize / 10).append("\n");
+        builder.append("Page: ").append(page + 1).append(" of ").append(fullSize / 10 + 1).append("\n");
         builder.append("\n");
         for (int i = 0; i < tracks.size(); i++) {
             if (i < 10) {

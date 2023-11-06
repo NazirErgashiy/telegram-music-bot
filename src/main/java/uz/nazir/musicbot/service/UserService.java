@@ -1,24 +1,27 @@
 package uz.nazir.musicbot.service;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import uz.nazir.musicbot.config.ConstantsConfig;
-import uz.nazir.musicbot.repository.entity.UserEntity;
-import uz.nazir.musicbot.repository.sql.UsersRepository;
+import uz.nazir.musicbot.mappers.UserMapper;
+import uz.nazir.musicbot.repository.dao.UserRepository;
+import uz.nazir.musicbot.repository.entity.User;
 import uz.nazir.musicbot.repository.util.StandardTime;
 import uz.nazir.musicbot.service.dto.request.UserRequestDto;
 import uz.nazir.musicbot.service.dto.response.UserResponseDto;
-import uz.nazir.musicbot.service.mapper.UserMapper;
 
 import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-public class UsersService {
+public class UserService {
 
-    private final UsersRepository usersRepository;
+    private static final Logger slf4jLogger = LoggerFactory.getLogger(UserService.class);
+    private final UserRepository userRepository;
     private final UserMapper userMapper;
 
     @Transactional
@@ -27,58 +30,62 @@ public class UsersService {
         if (message.getMessage() == null) return;
 
         UserRequestDto user = new UserRequestDto();
-        user.setName(message.getMessage().getChat().getUserName());
+        if (message.getMessage().getChat().getUserName() != null) {
+            user.setName(message.getMessage().getChat().getUserName());
+        } else {
+            user.setName(message.getMessage().getChat().getFirstName());
+        }
         user.setCode(message.getMessage().getChatId().toString());
 
-        UserEntity foundUser = usersRepository.findByCode(String.valueOf(message.getMessage().getChatId()));
+        User foundUser = userRepository.findByCode(String.valueOf(message.getMessage().getChatId()));
         if (foundUser != null) {
             if (foundUser.getCode() == user.getCode()) {
                 foundUser.setLastUsedDate(StandardTime.nowIso8601());
-                usersRepository.save(foundUser);
+                userRepository.save(foundUser);
             }
             for (Long admin : ConstantsConfig.ADMIN_ID) {
                 if (admin == foundUser.getId()) {
-                    System.out.println("AdminName:[" + foundUser.getName() + "]");
-                    System.out.println("ChatId:[" + message.getMessage().getChatId() + "]");
-                    System.out.println("MessageId:[" + message.getMessage().getMessageId() + "]");
+                    slf4jLogger.info("AdminName:[" + foundUser.getName() + "]");
+                    slf4jLogger.info("ChatId:[" + message.getMessage().getChatId() + "]");
+                    slf4jLogger.info("MessageId:[" + message.getMessage().getMessageId() + "]");
                 }
             }
         } else {
-            UserEntity savingUser = userMapper.dtoToEntity(user);
-            usersRepository.save(savingUser);
+            User savingUser = userMapper.dtoToEntity(user);
+            userRepository.save(savingUser);
         }
     }
 
     @Transactional
     public void saveUser(UserRequestDto user) {
-        UserEntity entity = userMapper.dtoToEntity(user);
-        usersRepository.save(entity);
+        User entity = userMapper.dtoToEntity(user);
+        userRepository.save(entity);
     }
 
     @Transactional(readOnly = true)
     public List<UserResponseDto> getAllUsers() {
-        List<UserEntity> allUsers = (List<UserEntity>) usersRepository.findAll();
+        List<User> allUsers = (List<User>) userRepository.findAll();
 
         return userMapper.entityToDto(allUsers);
     }
 
     @Transactional(readOnly = true)
     public UserResponseDto getUserByChatId(String chatId) {
-        UserEntity entity = usersRepository.findByCode(chatId);
+        User entity = userRepository.findByCode(chatId);
         return userMapper.entityToDto(entity);
     }
 
     @Transactional
     public void saveUserPagination(String chatId, int page) {
-        UserEntity entity = usersRepository.findByCode(chatId);
+        User entity = userRepository.findByCode(chatId);
         entity.setPage(page);
-        usersRepository.save(entity);
+        userRepository.save(entity);
     }
 
     @Transactional
     public void saveUserSearch(String chatId, String search) {
-        UserEntity entity = usersRepository.findByCode(chatId);
+        User entity = userRepository.findByCode(chatId);
         entity.setSearch(search);
-        usersRepository.save(entity);
+        userRepository.save(entity);
     }
 }

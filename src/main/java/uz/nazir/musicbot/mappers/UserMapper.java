@@ -1,8 +1,8 @@
-package uz.nazir.musicbot.service.mapper;
+package uz.nazir.musicbot.mappers;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import uz.nazir.musicbot.repository.entity.UserEntity;
+import uz.nazir.musicbot.repository.entity.User;
 import uz.nazir.musicbot.service.dto.request.UserRequestDto;
 import uz.nazir.musicbot.service.dto.response.UserResponseDto;
 
@@ -13,9 +13,9 @@ public interface UserMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "joinedDate", ignore = true)
     @Mapping(target = "lastUsedDate", ignore = true)
-    UserEntity dtoToEntity(UserRequestDto requestDto);
+    User dtoToEntity(UserRequestDto requestDto);
 
-    UserResponseDto entityToDto(UserEntity entity);
+    UserResponseDto entityToDto(User entity);
 
-    List<UserResponseDto> entityToDto(List<UserEntity> entity);
+    List<UserResponseDto> entityToDto(List<User> entity);
 }
