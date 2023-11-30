@@ -1,5 +1,6 @@
 package uz.nazir.musicbot.telegram.request;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -16,7 +17,7 @@ import java.nio.charset.StandardCharsets;
 @Component
 public class TelegramHttpRequestManager {
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper().configure(JsonGenerator.Feature.IGNORE_UNKNOWN,true);
 
     public PostRequestFather downloadMusicFromChat(String uri) throws IOException {
         HttpPost post = new HttpPost(uri);

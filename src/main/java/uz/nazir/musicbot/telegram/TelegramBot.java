@@ -54,7 +54,7 @@ public class TelegramBot extends TelegramLongPollingBot {
 
             try {
                 PostRequestFather postRequestFather = telegramHttpRequestManager.downloadMusicFromChat("https://api.telegram.org/bot" + getBotToken() + "/getFile?file_id=" + audio.getFileId());
-                File music = telegramFileDownloader.downloadFile(postRequestFather.getPostRequestChild().getFile_path());
+                File music = telegramFileDownloader.downloadFile(postRequestFather.getResult().getFile_path());
 
                 TrackRequestDto track = new TrackRequestDto();
                 track.setName(audio.getFileName());

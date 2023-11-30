@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class PostRequestFather {
     private boolean ok;
-    private PostRequestChild postRequestChild;
+    private PostRequestChild result;
 }
