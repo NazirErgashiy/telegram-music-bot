@@ -32,8 +32,8 @@ dependencies {
 
     implementation "org.telegram:telegrambots:6.5.0"
 
-    //testImplementation "com.h2database:h2:2.2.224"
-    //implementation "com.h2database:h2:2.2.224"
+    testImplementation "com.h2database:h2:2.2.224"
+    implementation "com.h2database:h2:2.2.224"
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
