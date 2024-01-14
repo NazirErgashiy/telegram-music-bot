@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 import uz.nazir.musicbot.telegram.TelegramBot;
 
 import java.util.HashMap;
-import java.util.InputMismatchException;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 
 @Component
@@ -80,9 +80,9 @@ public class AdminConsoleThread extends Thread {
                 throw new RuntimeException("TASK ABORTED");
             }
             return line;
-        } catch (InputMismatchException e) {
+        } catch (NoSuchElementException e) {
             slf4jLogger.warn(e.getMessage());
         }
-        return "";
+        return "0";
     }
 }
